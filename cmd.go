@@ -1,6 +1,7 @@
 package co
 
 import (
+	"errors"
 	"fmt"
 
 	Z "github.com/rwxrob/bonzai/z"
@@ -40,8 +41,20 @@ var printCmd = &Z.Cmd{
 	Name:     `print`,
 	Summary:  `Print git co-author line when supplied with a key`,
 	Commands: []*Z.Cmd{help.Cmd},
-	Call: func(x *Z.Cmd, _ ...string) error {
-		fmt.Println("Hello world")
+	Call: func(x *Z.Cmd, args ...string) error {
+		if len(args) == 0 {
+			return nil
+		}
+		query := fmt.Sprintf("co_authors.%s", args[0])
+		name, err := x.Caller.C(query + ".full_name")
+		if err != nil {
+			return errors.New("Config has not been initialised")
+		}
+		email, err := x.Caller.C(query + ".email")
+		if err != nil {
+			return errors.New("Config has not been initialised")
+		}
+		fmt.Printf("Co-authored-by: %s <%s>\n", name, email)
 		return nil
 	},
 }
